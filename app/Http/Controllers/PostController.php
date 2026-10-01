@@ -51,7 +51,9 @@ class PostController extends Controller
      */
     public function edit(string $id)
     {
-        //
+       $post = Post::findOrFail($id);
+       $data = ['post' => $post];
+       return view('posts.edit')->with($data);
     }
 
     /**
@@ -59,7 +61,15 @@ class PostController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $validatedData = $request->validate([
+           'title'       => 'required|string|max:255',
+           'description' => 'required|string',
+       ]);
+       $post = Post::findOrFail($id);
+       $post->update($validatedData);
+
+       return redirect()->route('posts.index')
+           ->with('success', 'Post berhasil diperbarui.');
     }
 
     /**
@@ -67,6 +77,10 @@ class PostController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $post = Post::findOrFail($id);
+        $post->delete();
+
+        return redirect()->route('posts.index')
+            ->with('success', 'Post berhasil dihapus.');
     }
 }

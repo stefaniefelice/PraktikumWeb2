@@ -1,5 +1,9 @@
    @extends('layouts.app')
 
+   @if (session('success'))
+       <div class="alert alert-success">{{ session('success') }}</div>
+   @endif
+
    @section('content')
    <h1>Daftar Project</h1>
    @forelse ($projects as $project)

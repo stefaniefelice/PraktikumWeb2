@@ -28,13 +28,15 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-           'title'       => 'required|max:200',
-           'description' => 'required',
-           'tech_stack'  => 'nullable|max:200',
+        $validatedData = $request->validate([
+           'title'       => 'required|string|min:5|max:255',
+           'description' => 'required|string|min:10',
+           'tech_stack'  => 'nullable|string|max:200',
        ]);
-       Project::create($request->only(['title', 'description', 'tech_stack']));
-       return redirect()->route('projects.index');
+       Project::create($validatedData);
+
+       return redirect()->route('projects.index')
+           ->with('success', 'Project berhasil ditambahkan.');
     }
 
     /**
@@ -50,7 +52,8 @@ class ProjectController extends Controller
      */
     public function edit(string $id)
     {
-        //
+       $project = Project::findOrFail($id);
+       return view('projects.edit')->with(['project' => $project]);
     }
 
     /**
@@ -58,7 +61,16 @@ class ProjectController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $validatedData = $request->validate([
+           'title'       => 'required|string|min:5|max:255',
+           'description' => 'required|string|min:10',
+           'tech_stack'  => 'nullable|string|max:200',
+        ]);
+        $project = Project::findOrFail($id);
+        $project->update($validatedData);
+
+        return redirect()->route('projects.index')
+           ->with('success', 'Project berhasil diperbarui.');
     }
 
     /**
@@ -66,6 +78,10 @@ class ProjectController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $project = Project::findOrFail($id);
+        $project->delete();
+
+        return redirect()->route('projects.index')
+            ->with('success', 'Project berhasil dihapus.');
     }
 }
