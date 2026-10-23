@@ -10,10 +10,22 @@ class PostController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data = ['id' => "posts", 'posts' => Post::all()];
-       return view('posts.index')->with($data);
+        $perPage = in_array((int) $request->per_page, [5, 10, 25])
+            ? (int) $request->per_page
+            : 10;
+
+        $posts = Post::when($request->q, function ($query, $q) {
+                $query->where('title', 'like', '%' . $q . '%');
+            })
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $data = ['id' => 'posts', 'posts' => $posts];
+        return view('posts.index')->with($data);
     }
 
     /**
@@ -30,11 +42,11 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-           'title'       => 'required|max:200',
-           'description' => 'required',
-       ]);
-       Post::create($request->only(['title', 'description']));
-       return redirect()->route('posts.index');
+            'title'       => 'required|max:200',
+            'description' => 'required',
+        ]);
+        Post::create($request->only(['title', 'description']));
+        return redirect()->route('posts.index');
     }
 
     /**
@@ -42,8 +54,8 @@ class PostController extends Controller
      */
     public function show(string $id)
     {
-        $data = ['id' => "posts", 'posts' => Post::find($id)];
-       return view('posts.show')->with($data);
+        $data = ['id' => 'posts', 'posts' => Post::find($id)];
+        return view('posts.show')->with($data);
     }
 
     /**
@@ -51,9 +63,9 @@ class PostController extends Controller
      */
     public function edit(string $id)
     {
-       $post = Post::findOrFail($id);
-       $data = ['post' => $post];
-       return view('posts.edit')->with($data);
+        $post = Post::findOrFail($id);
+        $data = ['post' => $post];
+        return view('posts.edit')->with($data);
     }
 
     /**
@@ -62,14 +74,14 @@ class PostController extends Controller
     public function update(Request $request, string $id)
     {
         $validatedData = $request->validate([
-           'title'       => 'required|string|max:255',
-           'description' => 'required|string',
-       ]);
-       $post = Post::findOrFail($id);
-       $post->update($validatedData);
+            'title'       => 'required|string|max:255',
+            'description' => 'required|string',
+        ]);
+        $post = Post::findOrFail($id);
+        $post->update($validatedData);
 
-       return redirect()->route('posts.index')
-           ->with('success', 'Post berhasil diperbarui.');
+        return redirect()->route('posts.index')
+            ->with('success', 'Post berhasil diperbarui.');
     }
 
     /**
